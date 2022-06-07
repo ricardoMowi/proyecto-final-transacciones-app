@@ -37,9 +37,9 @@ import reactor.core.publisher.Mono;
 public class transactionService {
   @Autowired
   private transactionRepository transactionRepository; 
-
 	@Autowired
 	private productRepository productRepository;
+
   @Autowired
   private final MasterValuesApiClient client; 
 
@@ -568,14 +568,16 @@ public class transactionService {
         service.storageMasterValueList(
           client.getList()
             .stream()
+            .map(MasterValuesCache::fromMVResponse)
             .collect(Collectors.toList())
         );
       }
-      List<MasterValues> lista = service.getAll();
+      List<MasterValuesCache> lista = service.getAll();
+      log.info("lista" + lista);
 
       //Obtener tasas de compra y venta de bootcoin 
-      MasterValues ratePurchase = lista.stream().filter(mv -> mv.getStatus().equals("ACTIVE") &&  "PURCHASE_RATE".equals(mv.getCode())).findAny().orElse(null);
-      MasterValues rateSelling = lista.stream().filter(mv -> mv.getStatus().equals("ACTIVE") && "SELLING_RATE".equals(mv.getCode())).findAny().orElse(null);
+      MasterValuesCache ratePurchase = lista.stream().filter(mv -> mv.getStatus().equals("ACTIVE") &&  "PURCHASE_RATE".equals(mv.getCode())).findAny().orElse(null);
+      MasterValuesCache rateSelling = lista.stream().filter(mv -> mv.getStatus().equals("ACTIVE") && "SELLING_RATE".equals(mv.getCode())).findAny().orElse(null);
       String val1 = String.valueOf(ratePurchase.getValue());
       String val2 = String.valueOf(rateSelling.getValue());
 

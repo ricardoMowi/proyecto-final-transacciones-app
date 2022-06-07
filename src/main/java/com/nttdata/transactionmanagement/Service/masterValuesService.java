@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.nttdata.transactionmanagement.Model.MasterValues;
 import com.nttdata.transactionmanagement.Repository.masterValuesRepository;
-
+import com.nttdata.transactionmanagement.redis.model.MasterValuesCache;
 
 import lombok.RequiredArgsConstructor;
 
@@ -16,23 +16,21 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class masterValuesService {
     
-    @Autowired
-    private masterValuesRepository repository;
+    private final masterValuesRepository repository;
 
  
-    public List<MasterValues> getAll() {
+    public List<MasterValuesCache> getAll() {
         try {
-          List<MasterValues> assuranceCacheList = repository.findAll().collectList().block();          
+          List<MasterValuesCache> assuranceCacheList = repository.findAll();      
           return assuranceCacheList;
         } catch (Exception e) {
           return Collections.EMPTY_LIST;
         }
     }
     
-    public String storageMasterValueList(List<MasterValues> masterValuesList) {
+    public String storageMasterValueList(List<MasterValuesCache> masterValuesList) {
         try {
-        	;
-            Iterable<MasterValues> iterable = masterValuesList;
+        	Iterable<MasterValuesCache> iterable = masterValuesList;
             repository.saveAll(iterable);
             return "Master values list create successfully";
         } catch (Exception e) {

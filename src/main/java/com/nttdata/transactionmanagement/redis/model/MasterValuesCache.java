@@ -14,7 +14,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RedisHash("MasterValue")
 @Getter
 @Setter
@@ -32,6 +34,7 @@ public class MasterValuesCache implements Serializable{
     private String masterType;
 
     public static MasterValuesCache fromMVResponse(MasterValuesResponse objResponse) {
+		log.info("obj que entró "+ objResponse);
 		return MasterValuesCache.builder()
 				.id(objResponse.getId())
 				.creationDate(objResponse.getCreationDate())

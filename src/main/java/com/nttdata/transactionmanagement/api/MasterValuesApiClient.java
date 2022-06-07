@@ -39,7 +39,7 @@ public class MasterValuesApiClient {
 		return result;
 	}
 	**/
-
+	/**
 	public List<MasterValues> getList() throws InterruptedException{
 		ExecutorService executor = Executors.newSingleThreadExecutor();
 		List<MasterValues> result=new ArrayList<>();
@@ -52,6 +52,22 @@ public class MasterValuesApiClient {
 		.subscribe(response->result.add(response));
 		executor.awaitTermination(1, TimeUnit.SECONDS);
 		log.info("Master Values list"+ result);
+		return result;
+	}
+	*/
+
+	public List<MasterValuesResponse> getList() throws InterruptedException{
+		ExecutorService executor = Executors.newSingleThreadExecutor();
+		List<MasterValuesResponse> result = new ArrayList<>();
+		webClient.get().uri(mvProperties.getBaseUrl() +"/mastervalues/all")
+		  .accept(MediaType.TEXT_EVENT_STREAM)
+		  .retrieve()
+		  .bodyToFlux(MasterValuesResponse.class)
+		  .publishOn(Schedulers.fromExecutor(executor))
+		  .subscribe(obj -> result.add(obj));
+	
+		executor.awaitTermination(1, TimeUnit.SECONDS);
+		log.info("Master Values list " + result);
 		return result;
 	}
 

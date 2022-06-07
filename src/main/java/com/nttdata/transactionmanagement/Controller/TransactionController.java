@@ -18,6 +18,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
+
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -29,33 +32,45 @@ public class TransactionController {
 	private transactionService service;
 
     @GetMapping("/getAll")
+	@TimeLimiter(name="createTime")
+	@CircuitBreaker(name="createCircuit")
 	public Flux<TransactionDto> getAll(){
 		return service.getAll();
 	}
 
     @GetMapping("/getById/{id}")
+	@TimeLimiter(name="createTime")
+	@CircuitBreaker(name="createCircuit")
 	public Mono<TransactionDto> getTransaction(@PathVariable String id){
 		return service.getTransaction(id);
 	}
 
 	@PostMapping("/save")
+	@TimeLimiter(name="createTime")
+	@CircuitBreaker(name="createCircuit")
 	public Mono<TransactionDto> saveTransaction(@RequestBody Mono<TransactionDto> TransactionObj){
 		return service.saveTransaction(TransactionObj);
 	}
 
 	//Microservicio para la creacion de transacciones con las reglas de negocio
 	@PostMapping("/createTransaction")
+	@TimeLimiter(name="createTime")
+	@CircuitBreaker(name="createCircuit")
 	public ResponseEntity<Map<String, Object>> createTransaction(@RequestBody Transaction TransactionObj){
 		return service.createTransaction(TransactionObj);
 	}
 
 	@PostMapping("/createEWalletTransaction")
+	@TimeLimiter(name="createTime")
+	@CircuitBreaker(name="createCircuit")
 	//public Mono<Transaction> createEWalletTransaction(@RequestBody JSONObject new_trans){
 	public Mono<Transaction> createEWalletTransaction(@RequestParam String phoneOrigin,@RequestParam  String phoneDestination,@RequestParam  Double amount){		
 		return service.transferByYanki(phoneOrigin, phoneDestination,amount );
 	}
 
 	@PostMapping("/createBootCoinTransaction")
+	@TimeLimiter(name="createTime")
+	@CircuitBreaker(name="createCircuit")
 	//public Mono<Transaction> createEWalletTransaction(@RequestBody JSONObject new_trans){
 	public Transaction createBootCoinTransaction(@RequestParam String origin,@RequestParam  String destination,
 	@RequestParam  Double amount, @RequestParam String paymentMethod) throws InterruptedException{		
@@ -63,11 +78,15 @@ public class TransactionController {
 	}
 	
 	@PutMapping("/update/{id}")
+	@TimeLimiter(name="createTime")
+	@CircuitBreaker(name="createCircuit")
 	public Mono<TransactionDto> saveTransaction(@RequestBody Mono<TransactionDto> TransactionObj,@PathVariable String id){
 		return service.updateTransaction(TransactionObj, id);
 	}
 	
 	@DeleteMapping("/delete/{id}")
+	@TimeLimiter(name="createTime")
+	@CircuitBreaker(name="createCircuit")
 	public Mono<Void> deleteTransaction(@PathVariable String id){
 		return service.deleteTransaction(id);
 	}

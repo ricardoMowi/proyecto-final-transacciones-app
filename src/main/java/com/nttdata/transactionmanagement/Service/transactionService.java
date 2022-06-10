@@ -556,76 +556,147 @@ public class transactionService {
 
   
   public Transaction transferBootCoin(String origin,  String destination,  Double amount, String paymentMethod) throws InterruptedException{  
-      log.info("entrando a método transferByYanki");
-      log.info(origin);
-      log.info(destination);
+    log.info("entrando a método transferBootCoin");
+    log.info(origin);
+    log.info(destination);
 
-      String IdProductOrigin = origin;
-      String IdProductDestination = destination;
+    String IdProductOrigin = origin;
+    String IdProductDestination = destination;
 
-      //consultar valores en bdcache
-      if (service.getAll().isEmpty()) {
-        service.storageMasterValueList(
-          client.getList()
-            .stream()
-            .map(MasterValuesCache::fromMVResponse)
-            .collect(Collectors.toList())
-        );
-      }
-      List<MasterValuesCache> lista = service.getAll();
-      log.info("lista" + lista);
+    List<MasterValues> dataCache = service.getDataCache();
+    MasterValues ratePurchase = dataCache.stream().filter(mv -> mv.getStatus().equals("ACTIVE") &&  "PURCHASE_RATE".equals(mv.getCode())).findAny().orElse(null);
+    MasterValues rateSelling = dataCache.stream().filter(mv -> mv.getStatus().equals("ACTIVE") && "SELLING_RATE".equals(mv.getCode())).findAny().orElse(null);
+    log.info("ratePurchase" + String.valueOf(ratePurchase.getValue()));
+    log.info("rateSelling" + rateSelling);
 
-      //Obtener tasas de compra y venta de bootcoin 
-      MasterValuesCache ratePurchase = lista.stream().filter(mv -> mv.getStatus().equals("ACTIVE") &&  "PURCHASE_RATE".equals(mv.getCode())).findAny().orElse(null);
-      MasterValuesCache rateSelling = lista.stream().filter(mv -> mv.getStatus().equals("ACTIVE") && "SELLING_RATE".equals(mv.getCode())).findAny().orElse(null);
-      String val1 = String.valueOf(ratePurchase.getValue());
-      String val2 = String.valueOf(rateSelling.getValue());
+    String val1 = ratePurchase.equals(null) ? "1.0" :  String.valueOf(ratePurchase.getValue());
+    String val2 = rateSelling.equals(null) ? "1.3" : String.valueOf(rateSelling.getValue());
 
 
-      if(paymentMethod.equals("TRANSFER_BY_YANKI")){
-        log.info("entró a if "+ paymentMethod );
-        HashMap<String, Object> eWalletOrigin = getDataByWallet(origin);  
-        HashMap<String, Object> eWalletDestination = getDataByWallet(destination);  
-        log.info(eWalletOrigin.toString());
-        log.info(eWalletDestination.toString());
+    if(paymentMethod.equals("TRANSFER_BY_YANKI")){
+      log.info("entró a if "+ paymentMethod );
+      HashMap<String, Object> eWalletOrigin = getDataByWallet(origin);  
+      HashMap<String, Object> eWalletDestination = getDataByWallet(destination);  
+      log.info(eWalletOrigin.toString());
+      log.info(eWalletDestination.toString());
 
-        IdProductOrigin =  eWalletOrigin.get("eWalletId").toString();
-        IdProductDestination = eWalletDestination.get("eWalletId").toString();
-        log.info(IdProductOrigin );
-        log.info(IdProductDestination);
-      }
+      IdProductOrigin =  eWalletOrigin.get("eWalletId").toString();
+      IdProductDestination = eWalletDestination.get("eWalletId").toString();
+      log.info(IdProductOrigin );
+      log.info(IdProductDestination);
+    }
 
-        Transaction newTransaction = new Transaction();
-
-  
-        //Registrar transacción
-        java.util.Date date = new java.util.Date();
-        newTransaction.setAmount(amount);
-        newTransaction.setIdProduct(IdProductOrigin);
-        newTransaction.setStatus("ACTIVE");
-        newTransaction.setRegisterDate(date);
-        newTransaction.setTransactionType("BOOTCOIN_TRANSFER");
-        newTransaction.setIdDestinationProduct(IdProductDestination);
-        newTransaction.setOperationStatus("IN_PROCESS");
+      Transaction newTransaction = new Transaction();
 
 
+      //Registrar transacción
+      java.util.Date date = new java.util.Date();
+      newTransaction.setAmount(amount);
+      newTransaction.setIdProduct(IdProductOrigin);
+      newTransaction.setStatus("ACTIVE");
+      newTransaction.setRegisterDate(date);
+      newTransaction.setTransactionType("BOOTCOIN_TRANSFER");
+      newTransaction.setIdDestinationProduct(IdProductDestination);
+      newTransaction.setOperationStatus("IN_PROCESS");
 
 
-        //Registrar transaccion
-        Transaction newTRa= transactionRepository.save(newTransaction).block();
-        String id = newTRa.getId();  
-        //enviar a kafka
-        String concatValues = id + "%%" +newTransaction.getAmount().toString() + "%%" + newTransaction.getIdProduct() +"%%"+
-        newTransaction.getIdDestinationProduct()+"%%" +val1 + "%%" +   val2;
-        kafkaProducer.publishMessage(concatValues);
-        log.info("transaction final");
-        log.info(String.valueOf(concatValues));
+      //Registrar transaccion
+      Transaction newTRa= transactionRepository.save(newTransaction).block();
+      String id = newTRa.getId();  
+      //enviar a kafka
+      String concatValues = id + "%%" +newTransaction.getAmount().toString() + "%%" + newTransaction.getIdProduct() +"%%"+
+      newTransaction.getIdDestinationProduct()+"%%" +val1 + "%%" +   val2;
+      kafkaProducer.publishMessage(concatValues);
+      log.info("transaction final");
+      log.info(String.valueOf(concatValues));
 
-        return newTRa; //transactionRepository.save(newTransaction);
-      }
+      return newTRa;
+  }
   
    
-    
+  public Transaction transferBootCoin_temp(String origin,  String destination,  Double amount, String paymentMethod) throws InterruptedException{  
+    log.info("entrando a método transferBootCoin");
+    log.info(origin);
+    log.info(destination);
+
+    String IdProductOrigin = origin;
+    String IdProductDestination = destination;
+
+    //consultar valores en bdcache
+
+    if (service.getAll().isEmpty()) {
+      List<MasterValuesCache> testD = new ArrayList<>();
+      MasterValuesCache nuevo = new MasterValuesCache();
+      nuevo.setCode("PURCHASE_RATE");
+      nuevo.setValue(2.3);
+      testD.add(nuevo);
+  
+      MasterValuesCache nuevo_2 = new MasterValuesCache();
+      nuevo.setCode("SELLING_RATE");
+      nuevo.setValue(2.0);
+      testD.add(nuevo_2);
+
+      service.storageMasterValueList(testD);
+    }
+    List<MasterValuesCache> lista = service.getAll();
+    log.info("lista" + lista);
+
+    //Obtener tasas de compra y venta de bootcoin 
+    MasterValuesCache ratePurchase = lista.stream().filter(mv -> mv.getStatus().equals("ACTIVE") &&  "PURCHASE_RATE".equals(mv.getCode())).findAny().orElse(null);
+    MasterValuesCache rateSelling = lista.stream().filter(mv -> mv.getStatus().equals("ACTIVE") && "SELLING_RATE".equals(mv.getCode())).findAny().orElse(null);
+    log.info("ratePurchase" + ratePurchase);
+    log.info("rateSelling" + rateSelling);
+
+    //List<MasterValues> dataCache = service.getDataCache();
+    //MasterValues ratePurchase = dataCache.stream().filter(mv -> mv.getStatus().equals("ACTIVE") &&  "PURCHASE_RATE".equals(mv.getCode())).findAny().orElse(null);
+    //MasterValues rateSelling = dataCache.stream().filter(mv -> mv.getStatus().equals("ACTIVE") && "SELLING_RATE".equals(mv.getCode())).findAny().orElse(null);
+    //log.info("ratePurchase" + String.valueOf(ratePurchase.getValue()));
+    //log.info("rateSelling" + rateSelling);
+
+    String val1 = ratePurchase.equals(null) ? "1.0" :  String.valueOf(ratePurchase.getValue());
+    String val2 = rateSelling.equals(null) ? "1.3" : String.valueOf(rateSelling.getValue());
+
+
+    if(paymentMethod.equals("TRANSFER_BY_YANKI")){
+      log.info("entró a if "+ paymentMethod );
+      HashMap<String, Object> eWalletOrigin = getDataByWallet(origin);  
+      HashMap<String, Object> eWalletDestination = getDataByWallet(destination);  
+      log.info(eWalletOrigin.toString());
+      log.info(eWalletDestination.toString());
+
+      IdProductOrigin =  eWalletOrigin.get("eWalletId").toString();
+      IdProductDestination = eWalletDestination.get("eWalletId").toString();
+      log.info(IdProductOrigin );
+      log.info(IdProductDestination);
+    }
+
+      Transaction newTransaction = new Transaction();
+
+
+      //Registrar transacción
+      java.util.Date date = new java.util.Date();
+      newTransaction.setAmount(amount);
+      newTransaction.setIdProduct(IdProductOrigin);
+      newTransaction.setStatus("ACTIVE");
+      newTransaction.setRegisterDate(date);
+      newTransaction.setTransactionType("BOOTCOIN_TRANSFER");
+      newTransaction.setIdDestinationProduct(IdProductDestination);
+      newTransaction.setOperationStatus("IN_PROCESS");
+
+      //Registrar transaccion
+      Transaction newTRa= transactionRepository.save(newTransaction).block();
+      String id = newTRa.getId();  
+      //enviar a kafka
+      String concatValues = id + "%%" +newTransaction.getAmount().toString() + "%%" + newTransaction.getIdProduct() +"%%"+
+      newTransaction.getIdDestinationProduct()+"%%" +val1 + "%%" +   val2;
+      kafkaProducer.publishMessage(concatValues);
+      log.info("transaction final");
+      log.info(String.valueOf(concatValues));
+
+      return newTRa; //transactionRepository.save(newTransaction);
+    }
+
+
   
   
 }

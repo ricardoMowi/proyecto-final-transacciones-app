@@ -5,10 +5,14 @@ import com.nttdata.transactionmanagement.Dto.TransactionDto;
 import com.nttdata.transactionmanagement.Model.MasterValues;
 import com.nttdata.transactionmanagement.Model.Product;
 import com.nttdata.transactionmanagement.Model.Transaction;
+import com.nttdata.transactionmanagement.api.MasterValuesResponse;
 import com.nttdata.transactionmanagement.redis.model.MasterValuesCache;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.BeanUtils;
 
+@Slf4j
 public class AppUtils {
     public static ProductDto productEntitytoDto(Product product) {
 		ProductDto productDto=new ProductDto();
@@ -35,6 +39,13 @@ public class AppUtils {
 	
 	public static MasterValuesCache masterValuesToMasterValuesCache(MasterValues masterValues) {
 		MasterValuesCache mvc =new MasterValuesCache();
+		BeanUtils.copyProperties(masterValues, mvc);
+		return mvc;
+	}
+
+	public static MasterValuesResponse masterValuesToMasterValuesR(MasterValues masterValues) {
+		log.info("mastervvvvvvv:::"+ masterValues);
+		MasterValuesResponse mvc =new MasterValuesResponse();
 		BeanUtils.copyProperties(masterValues, mvc);
 		return mvc;
 	}
